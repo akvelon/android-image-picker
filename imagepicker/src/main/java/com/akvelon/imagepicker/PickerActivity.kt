@@ -21,7 +21,7 @@ class PickerActivity: AppCompatActivity() {
 
     private var multipleSelectEnabled = true
     private val alreadySelected by lazy { intent.extras?.getStringArrayList(KEY_LIST) }
-    private val allPhotos = mutableListOf<ImageWrapModel>()
+    private val allPhotos = mutableListOf<com.akvelon.imagepicker.ImageWrapModel>()
     private var imageFile: File? = null
     private val selectedPhotos = mutableListOf<String>()
     private var selectedPosition = 0
@@ -65,7 +65,9 @@ class PickerActivity: AppCompatActivity() {
             MediaStore.EXTRA_OUTPUT,
             Uri.fromFile(imageFile!!)
         )
-        startActivityForResult(camIntent, CAMERA_CODE)
+        startActivityForResult(camIntent,
+            CAMERA_CODE
+        )
     }
 
     companion object {
