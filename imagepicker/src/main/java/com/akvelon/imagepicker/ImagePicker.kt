@@ -1,15 +1,15 @@
 package com.akvelon.imagepicker
 
-import android.content.Context
+import android.app.Activity
 
 object ImagePicker {
 
-    fun launch(context: Context, alreadySelectedImages: List<String>) {
-        context.startActivity(PickerActivity.getIntent(context, alreadySelectedImages))
+    fun launch(activity: Activity, alreadySelectedImages: List<String>) {
+        activity.startActivityForResult(PickerActivity.getIntent(activity, alreadySelectedImages), PickerActivity.REQ_CODE)
     }
 
-    fun launch(context: Context) {
-        context.startActivity(PickerActivity.getIntent(context, emptyList()))
+    fun launch(activity: Activity) {
+        activity.startActivityForResult(PickerActivity.getIntent(activity, emptyList()), PickerActivity.REQ_CODE)
     }
 
 }

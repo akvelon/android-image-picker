@@ -1,9 +1,12 @@
 package com.akvelon.imagepicker
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.StrictMode
@@ -29,7 +32,7 @@ class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
 
     private var multipleSelectEnabled = true
     private val alreadySelected by lazy { intent.extras?.getStringArrayList(KEY_LIST) }
-    private val allPhotos = mutableListOf<com.akvelon.imagepicker.ImageWrapModel>()
+    private val allPhotos = mutableListOf<ImageWrapModel>()
     private var imageFile: File? = null
     private val selectedPhotos = mutableListOf<String>()
     private var selectedPosition = 0
@@ -46,12 +49,45 @@ class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_picker)
+        showLoading()
+        if(Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    GET_STORAGE_REQ_CODE)
+            } else refresh()
+        } else refresh()
+
         view_multipleSelect.setOnClickListener { multipleSelectChange() }
         imageView_back.setOnClickListener { finish() }
         textView_next.setOnClickListener { confirmWithResult() }
         textView_photo.setOnClickListener { showCamera() }
         (recyclerView_photos.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
-        refresh()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when(requestCode) {
+            GET_STORAGE_REQ_CODE -> {
+                if(
+                    grantResults.isNotEmpty() &&
+                    permissions.isNotEmpty() &&
+                    permissions[0] == Manifest.permission.READ_EXTERNAL_STORAGE &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    permissions[1] == Manifest.permission.WRITE_EXTERNAL_STORAGE &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED
+                ) {
+                    refresh()
+                } else finish()
+            }
+            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
     }
 
     private fun refresh() {
@@ -258,6 +294,7 @@ class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
         const val KEY_IMAGES_RESULT = "images_result"
         const val REQ_CODE = 1987
         const val CAMERA_CODE = 1988
+        private const val GET_STORAGE_REQ_CODE = 1999
         fun getIntent(context: Context, alreadySelected: List<String>): Intent {
             return Intent(context, PickerActivity::class.java).apply {
                 putExtra(KEY_LIST, ArrayList(alreadySelected))
