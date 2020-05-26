@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.hannesdorfmann.adapterdelegates3.AdapterDelegatesManager
 import kotlinx.android.synthetic.main.activity_image_picker.*
@@ -29,6 +30,7 @@ class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
 
     private val enabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_enabled) }
     private val disabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_disabled) }
+    val circularDrawable by lazy { CircularProgressDrawable(this) }
 
     private var multipleSelectEnabled = true
     private val alreadySelected by lazy { intent.extras?.getStringArrayList(KEY_LIST) }
@@ -180,6 +182,7 @@ class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
     private fun showImage(id: String) {
         Glide.with(this)
             .load(File(id))
+            .placeholder(circularDrawable)
             .into(imageView_photo)
     }
 
