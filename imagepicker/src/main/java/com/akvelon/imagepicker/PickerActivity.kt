@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.StrictMode
 import android.provider.MediaStore
+import android.util.DisplayMetrics
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,12 +26,17 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.roundToInt
 
 internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
 
+    private val size by lazy { getImageSize() }
+    private val columnCount = 4
+    private val dividerMultiplier = 0.02
+
     private val enabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_enabled) }
     private val disabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_disabled) }
-    val circularDrawable by lazy { CircularProgressDrawable(this) }
+    private val circularDrawable by lazy { CircularProgressDrawable(this) }
 
     private var multipleSelectEnabled = true
     private val alreadySelected by lazy { intent.extras?.getStringArrayList(KEY_LIST) }
@@ -43,7 +49,7 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
         AdapterDelegatesManager<List<*>>()
             .apply {
                 addDelegate(
-                    ImageDelegate(this@PickerActivity, this@PickerActivity)
+                    ImageDelegate(this@PickerActivity, this@PickerActivity, size)
                 )
             }
     }
@@ -52,6 +58,12 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_picker)
         showLoading()
+        view_multipleSelect.setOnClickListener { multipleSelectChange() }
+        imageView_back.setOnClickListener { finish() }
+        textView_next.setOnClickListener { confirmWithResult() }
+        textView_photo.setOnClickListener { showCamera() }
+        (recyclerView_photos.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
+        recyclerView_photos.addItemDecoration(PhotoGridDivider((size * dividerMultiplier).roundToInt(), columnCount))
         if(Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED &&
@@ -62,12 +74,6 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
                     GET_STORAGE_REQ_CODE)
             } else refresh()
         } else refresh()
-
-        view_multipleSelect.setOnClickListener { multipleSelectChange() }
-        imageView_back.setOnClickListener { finish() }
-        textView_next.setOnClickListener { confirmWithResult() }
-        textView_photo.setOnClickListener { showCamera() }
-        (recyclerView_photos.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
     }
 
     override fun onRequestPermissionsResult(
@@ -290,6 +296,14 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
         allPhotos[selectedPosition].isCurrentlySelected = false
         recyclerView_photos.adapter?.notifyItemChanged(selectedPosition)
         selectedPosition = position
+    }
+
+    private fun getImageSize(): Int {
+        val displayMetrics: DisplayMetrics = this.resources.displayMetrics
+        val width = displayMetrics.widthPixels
+        val dividers = (columnCount + 1) * dividerMultiplier
+        val size = (width/(columnCount + dividers)).roundToInt()
+        return size
     }
 
     companion object {

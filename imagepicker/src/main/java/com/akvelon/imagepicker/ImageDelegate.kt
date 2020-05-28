@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.item_image.view.*
@@ -14,7 +15,8 @@ import java.io.File
 
 class ImageDelegate(
     context: Context,
-    private val listener: ClickListener
+    private val listener: ClickListener,
+    private val size: Int
 ): BaseDelegate<ImageDelegate.ViewHolder, ImageWrapModel>(context) {
 
     private val selectedDrawable by lazy { ContextCompat.getDrawable(context, R.drawable.image_counter_selected) }
@@ -46,13 +48,16 @@ class ImageDelegate(
     override fun isForViewType(item: Any?): Boolean = item is ImageWrapModel
 
     override fun onCreateViewHolder(layoutInflater: LayoutInflater, parent: ViewGroup?): ViewHolder {
-        return ViewHolder(
-            layoutInflater.inflate(
-                R.layout.item_image,
-                parent,
-                false
-            )
+        val view = layoutInflater.inflate(
+            R.layout.item_image,
+            parent,
+            false
         )
+        val params = (view.layoutParams as GridLayoutManager.LayoutParams)
+        params.height = size
+        params.width = size
+        view.layoutParams = params
+        return ViewHolder(view)
     }
 
     class ViewHolder(val view: View): RecyclerView.ViewHolder(view) {
