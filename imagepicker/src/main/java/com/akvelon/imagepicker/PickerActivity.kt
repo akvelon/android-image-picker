@@ -246,6 +246,26 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
         )
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(resultCode == Activity.RESULT_OK && requestCode == CAMERA_CODE) {
+            imageFile?.let {
+                if(it.exists()) {
+                    allPhotos
+                        .add(0,
+                            ImageWrapModel(
+                                it.absolutePath,
+                                false,
+                                multipleSelectEnabled
+                            )
+                        )
+                    recyclerView_photos.adapter?.notifyItemInserted(0)
+                    recyclerView_photos.scrollToPosition(0)
+                }
+            }
+
+        } else super.onActivityResult(requestCode, resultCode, data)
+    }
+
     override fun onClick(position: Int) {
         val id = allPhotos[position].id
         showImage(id)
