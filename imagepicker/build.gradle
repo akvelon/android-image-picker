@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.akvelon'
 
 android {
     compileSdkVersion 29
@@ -24,16 +25,6 @@ android {
         }
     }
 
-}
-
-publish {
-    groupId = 'com.github.akvelon'
-    artifactId = 'imagepicker'
-    publishVersion = '1.0'
-    desc = 'Instagram like Image Picker for Android'
-    licences = ['Apache-2.0']
-    uploadName='AkvelonImagePicker'
-    website = 'https://github.com/akvelon/android-image-picker.git'
 }
 
 dependencies {
