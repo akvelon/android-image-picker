@@ -26,7 +26,7 @@ import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
-class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
+internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener {
 
     private val enabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_enabled) }
     private val disabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_disabled) }
