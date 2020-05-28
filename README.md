@@ -39,7 +39,7 @@ If you already have selected images
 ImagePicker.launchWithPreselectedImages(
 this, // Activity or Fragment
  alreadySelectedImages // list of already selected files
-) ; 
+);
 ``` 
 
 ## Receive result
