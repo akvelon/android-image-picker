@@ -3,6 +3,19 @@
 
 A simple Instagram like library to select images from the gallery and camera.
 
+# Screenshot
+
+<details>
+	<summary>Click to see how image picker looks…</summary>
+<img
+src="https://raw.githubusercontent.com/akvelon/android-image-picker/master/art/ss.gif" height="776" width="368"/>
+</details>
+
+
+# Usage
+
+For full example, please refer to the `sample` app.
+
 Add this to your project's `build.gradle`
 
 ```groovy
@@ -21,10 +34,6 @@ dependencies {
 }
 ```
 change `x.y.z` to version in the [release page](https://github.com/akvelon/android-image-picker/releases)
-
-# Usage
-
-For full example, please refer to the `sample` app. 
 
 ## Start image picker activity
 
@@ -66,4 +75,4 @@ If you have any trouble adding this version to your current project, please add 
 android.useAndroidX=true
 android.enableJetifier=true
 ```
-Or simply create an issue.
+Or simply create an [issue](https://github.com/akvelon/android-image-picker/issues)
