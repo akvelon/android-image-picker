@@ -12,6 +12,7 @@ import android.os.Environment
 import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -21,6 +22,10 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.hannesdorfmann.adapterdelegates3.AdapterDelegatesManager
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_image_picker.*
 import java.io.File
 import java.io.IOException
@@ -33,9 +38,8 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
     private val size by lazy { getImageSize() }
     private val columnCount = 4
     private val dividerMultiplier = 0.02
+    private val compositeDisposable = CompositeDisposable()
 
-    private val enabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_enabled) }
-    private val disabledDrawable by lazy { ContextCompat.getDrawable(this, R.drawable.mult_select_bg_disabled) }
     private val circularDrawable by lazy { CircularProgressDrawable(this) }
 
     private var multipleSelectEnabled = true
@@ -54,10 +58,21 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
             }
     }
 
+    private val layoutManager by lazy {
+        GridLayoutManager(
+            this,
+            4,
+            RecyclerView.VERTICAL,
+            false
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_image_picker)
         showLoading()
+
+        view_multipleSelect.isActivated = true
         view_multipleSelect.setOnClickListener { multipleSelectChange() }
         imageView_back.setOnClickListener { finish() }
         textView_next.setOnClickListener { confirmWithResult() }
@@ -72,8 +87,8 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
                 requestPermissions(
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     GET_STORAGE_REQ_CODE)
-            } else refresh()
-        } else refresh()
+            } else setupList()
+        } else setupList()
     }
 
     override fun onRequestPermissionsResult(
@@ -91,23 +106,35 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
                     permissions[1] == Manifest.permission.WRITE_EXTERNAL_STORAGE &&
                     grantResults[1] == PackageManager.PERMISSION_GRANTED
                 ) {
-                    refresh()
+                    setupList()
                 } else finish()
             }
             else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
 
-    private fun refresh() {
+    private fun setupList() {
         showLoading()
-        allPhotos.clear()
-        allPhotos.addAll(mapIds(retrieveFiles()))
-        showData(allPhotos)
+        compositeDisposable.add(
+            Single.fromCallable { mapIds(retrieveFiles()) }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    {
+                        allPhotos.clear()
+                        allPhotos.addAll(it)
+                        showData(allPhotos)
+                    },
+                    {
+                        Log.e(PickerActivity::class.java.name, "Error while retrieving data")
+                    }
+                )
+        )
     }
 
     private fun multipleSelectChange() {
         multipleSelectEnabled = !multipleSelectEnabled
-        view_multipleSelect.background = if(multipleSelectEnabled) enabledDrawable else disabledDrawable
+        view_multipleSelect.isActivated = multipleSelectEnabled
         notifyView()
     }
 
@@ -192,17 +219,6 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
             .into(imageView_photo)
     }
 
-
-    private val layoutManager by lazy {
-        GridLayoutManager(
-            this,
-            4,
-            RecyclerView.VERTICAL,
-            false
-        )
-    }
-
-
     private fun confirmWithResult() {
         if(multipleSelectEnabled) {
             finishWithResult(ArrayList(selectedPhotos))
@@ -258,11 +274,11 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
                                 multipleSelectEnabled
                             )
                         )
+                    selectedPosition++
                     recyclerView_photos.adapter?.notifyItemInserted(0)
                     recyclerView_photos.scrollToPosition(0)
                 }
             }
-
         } else super.onActivityResult(requestCode, resultCode, data)
     }
 
@@ -324,6 +340,11 @@ internal class PickerActivity: AppCompatActivity(), ImageDelegate.ClickListener 
         val dividers = (columnCount + 1) * dividerMultiplier
         val size = (width/(columnCount + dividers)).roundToInt()
         return size
+    }
+
+    override fun onDestroy() {
+        compositeDisposable.dispose()
+        super.onDestroy()
     }
 
     companion object {
