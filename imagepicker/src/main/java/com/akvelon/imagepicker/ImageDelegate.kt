@@ -23,7 +23,7 @@ class ImageDelegate(
     private val deselectedDrawable by lazy { ContextCompat.getDrawable(context, R.drawable.image_counter_not_selected) }
 
     override fun onBindViewHolder(position: Int, item: ImageWrapModel, holder: ViewHolder, payloads: MutableList<Any>) {
-        holder.view.setOnClickListener { listener.onClick(position) }
+        holder.view.setOnClickListener { listener.onClick(holder.adapterPosition) }
         if(item.isCurrentlySelected) holder.tint.visibility = View.VISIBLE
         else holder.tint.visibility = View.GONE
 
