@@ -5,11 +5,8 @@ A simple Instagram like library to select images from the gallery and camera.
 
 # Screenshot
 
-<details>
-	<summary>Click to see how image picker looks…</summary>
 <img
 src="https://raw.githubusercontent.com/akvelon/android-image-picker/master/art/example.gif" height="522" width="263"/>
-</details>
 
 
 # Usage
